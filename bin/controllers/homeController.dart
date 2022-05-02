@@ -44,6 +44,7 @@ class HomeController implements Controller{
     var db = DbContext();
     List<VisitorLog> logs = db.getVisitors();
     List<Map<String, dynamic>> logsMap = [];
+    int total = db.getVisitorCt();
     for (VisitorLog log in logs){
       var dict = {
         'logId':log.logId,
@@ -51,6 +52,7 @@ class HomeController implements Controller{
         'region':log.region,
         'query':log.query,
         'timestamp':log.timestamp,
+        'visitorCt':total,
       };
       logsMap.add(dict);
     }

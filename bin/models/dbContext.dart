@@ -48,7 +48,8 @@ class DbContext{
     }
     if(db != null){
       try{
-        var resultSet = db.select('SELECT * FROM VisitorLog');
+        var resultSet = db.select('SELECT * FROM VisitorLog '
+            'order by Timestamp desc LIMIT 30');
         for (Row row in resultSet) {
           var log = VisitorLog();
           log.logId = int.parse(row['LogId'].toString());
@@ -93,9 +94,10 @@ class DbContext{
   }
 
   DynamicLibrary _openOnLinux() {
-    final scriptDir = File(Platform.script.toFilePath()).parent;
-    final libraryNextToScript = File('${scriptDir.path}/libsqlite3.so.0.8.6');
-    return DynamicLibrary.open(libraryNextToScript.path);
+    String soPath = p.current + '/bin/libsqlite3.so.0.8.6';
+    // final scriptDir = File(Platform.script.toFilePath()).parent;
+    // final libraryNextToScript = File('${scriptDir.path}/libsqlite3.so.0.8.6');
+    return DynamicLibrary.open(soPath);
   }
 
 }

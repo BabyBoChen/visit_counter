@@ -53,6 +53,10 @@ FutureOr<Response> _myHandler(Request request) {
   } else if (routes.first == 'counter') {
     Controller counterController = CounterController(request);
     resp = counterController.render();
+  } else if(routes.first == 'visit_counter.db'){
+    var dbDownload =
+    createStaticHandler('bin', defaultDocument: 'visit_counter.db');
+    resp = dbDownload(request);
   }
   return resp;
 }
