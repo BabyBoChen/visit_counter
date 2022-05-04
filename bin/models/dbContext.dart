@@ -2,6 +2,7 @@ library visit_counter.models;
 
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:path/path.dart' as p;
 
@@ -93,10 +94,33 @@ class DbContext{
     return visitorCt;
   }
 
+  String getUpTime(){
+    String since = '';
+    Database? db;
+    try{
+      db = sqlite3.open(dbpath);
+    }catch (ex){
+      print(ex);
+    }
+    if(db != null){
+      try{
+        var resultSet = db.select("select * from UpTime");
+        if(resultSet.isEmpty){
+          db.execute("insert into UpTime DEFAULT VALUES");
+          resultSet = db.select("select * from UpTime");
+        }
+        since = resultSet.first["Since"].toString();
+      }catch(ex){
+        print(ex);
+      } finally{
+        db.dispose();
+      }
+    }
+    return since;
+  }
+  
   DynamicLibrary _openOnLinux() {
     String soPath = p.current + '/bin/libsqlite3.so.0.8.6';
-    // final scriptDir = File(Platform.script.toFilePath()).parent;
-    // final libraryNextToScript = File('${scriptDir.path}/libsqlite3.so.0.8.6');
     return DynamicLibrary.open(soPath);
   }
 

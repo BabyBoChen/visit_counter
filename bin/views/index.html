@@ -40,7 +40,7 @@
     </head>
     <body>
         <h1 class="page-title">伯夷作品集訪客人數：<span id="visitorCt"></span></h1>
-        <h2 class="page-title">since 2022-05-02</h2>
+        <h2 class="page-title">since <span id="spanSince"></span></h2>
         <div id="tbVisitorsWrapper" class="table-responsice">
             <table id="tbVisitors" class="table table-striped table-hover table-bordered table-sm">
                 <thead>
@@ -56,6 +56,7 @@
             </table>
         </div>
         <script>
+            const spanSince = document.getElementById('spanSince');
             const visitorCt = document.getElementById('visitorCt');
             window.addEventListener('DOMContentLoaded',async function(){
                 {//load data
@@ -82,6 +83,7 @@
                 visitorCt.innerHTML = 0;
                 let tbody = $('#tbVisitors tbody');
                 $(visitors).each(function(i, item){
+                    spanSince.innerHTML = item.since;
                     visitorCt.innerHTML = item.visitorCt;
                     let tr = "<tr>";
                     tr += `<td>${item.logId}</td>`;

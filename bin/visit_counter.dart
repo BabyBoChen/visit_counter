@@ -1,7 +1,6 @@
 library visit_counter;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -11,7 +10,7 @@ import 'controllers/controllerBase.dart';
 import 'controllers/counterController.dart';
 import 'controllers/homeController.dart';
 
-import 'package:path/path.dart' as p;
+import 'models/dbContext.dart';
 
 void main() async {
   var app = Pipeline()
@@ -19,10 +18,12 @@ void main() async {
       .addMiddleware(_cors())
       .addHandler(_myHandler);
 
+  String since = _setUpTime();
+
   var server = await shelf_io.serve(app, '0.0.0.0', 8080);
 
   server.autoCompress = true;
-
+  print('Since: $since');
   print('Serving at http://${server.address.host}:${server.port}');
 }
 
@@ -40,6 +41,13 @@ Middleware _cors() {
   return filter;
 }
 
+String _setUpTime(){
+  String since = '';
+  var db = DbContext();
+  since = db.getUpTime();
+  return since;
+}
+
 FutureOr<Response> _myHandler(Request request) {
   var routes = request.url.pathSegments;
   FutureOr<Response> resp = Response.notFound('404');
@@ -55,7 +63,8 @@ FutureOr<Response> _myHandler(Request request) {
     resp = counterController.render();
   } else if(routes.first == 'visit_counter.db'){
     var dbDownload =
-    createStaticHandler('bin', defaultDocument: 'visit_counter.db');
+    createFileHandler('bin/visit_counter.db',
+        contentType: "application/octet-stream");
     resp = dbDownload(request);
   }
   return resp;
