@@ -1,0 +1,45 @@
+body {
+    max-width: 100%;
+    overflow: hidden;
+    overflow-y: auto;
+}
+.page-title{
+    margin-top: 10px;
+    text-align: center;
+}
+#tbVisitorsWrapper{
+    text-align: center;
+    overflow: auto;
+}
+#tbVisitor_wrapper{
+    min-width: 45em;
+    max-width: 960px;
+    text-align: center;
+    margin: auto;
+}
+.dataTables_filter{
+    display: block !important;
+    float: none !important;
+    text-align: left !important;
+    margin: auto;
+    margin-bottom: 10px;
+}
+table, th, td {
+    border: 1px solid !important;
+    border-collapse: collapse !important;
+}
+#tbVisitor{
+    min-width: 45em;
+}
+thead tr{
+    background-color: #d9d9d9 !important;
+}
+tr.even{
+    background-color: #e6f2ff !important;
+}
+.dataTables_info{
+    display: block !important;
+    float: none !important;
+    text-align: center !important;
+    margin: 20px 0px;
+}

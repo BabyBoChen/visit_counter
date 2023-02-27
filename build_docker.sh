@@ -1,0 +1,1 @@
+docker build -t bbljboy/my_dart .

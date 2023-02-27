@@ -10,14 +10,14 @@ import '../models/dbContext.dart';
 import '../models/visitor_log.dart';
 import 'controllerBase.dart';
 
-class HomeController implements Controller{
+class HomeController implements Controller {
   final Request request;
 
   HomeController(this.request);
 
-  FutureOr<Response> index(){
-    var fileResponse = createStaticHandler('bin/views',
-        defaultDocument: 'index.html');
+  FutureOr<Response> index() {
+    var fileResponse =
+        createStaticHandler('bin/views', defaultDocument: 'index.html');
     return fileResponse(request);
   }
 
@@ -31,9 +31,9 @@ class HomeController implements Controller{
     visitor.query = userIp["query"].toString();
     var db = DbContext();
     var isSuccess = db.addVisitor(visitor);
-    if(isSuccess){
+    if (isSuccess) {
       resp = Response.ok('1|OK');
-    } else{
+    } else {
       resp = Response.ok('0|Fail');
     }
     return resp;
@@ -42,38 +42,41 @@ class HomeController implements Controller{
   FutureOr<Response> getVisitors() async {
     FutureOr<Response> resp = Response.badRequest();
     var db = DbContext();
+    String since = db.getUpTime();
     List<VisitorLog> logs = db.getVisitors();
     List<Map<String, dynamic>> logsMap = [];
-    int total = db.getVisitorCt();
-    String since = db.getUpTime();
-    for (VisitorLog log in logs){
+    for (VisitorLog log in logs) {
       var dict = {
-        'logId':log.logId,
-        'countryCode':log.countryCode,
-        'region':log.region,
-        'query':log.query,
-        'timestamp':log.timestamp,
-        'visitorCt':total,
-        'since':since,
+        'logId': log.logId,
+        'countryCode': log.countryCode,
+        'region': log.region,
+        'query': log.query,
+        'timestamp': log.timestamp,
       };
       logsMap.add(dict);
     }
-    String jsonStr = jsonEncode(logsMap);
-    resp = Response.ok(jsonStr, headers: {'content-type':'application/json'});
+    int total = db.getVisitorCt();
+    Map<String, dynamic> visitorLog = {
+      "since": since,
+      "visitors": logsMap,
+      "visitorCount": total,
+    };
+    String jsonStr = jsonEncode(visitorLog);
+    resp = Response.ok(jsonStr, headers: {'content-type': 'application/json'});
     return resp;
   }
 
   @override
-  FutureOr<Response> render() async{
+  FutureOr<Response> render() async {
     var routes = request.url.pathSegments;
     FutureOr<Response> resp = Response.badRequest();
-    if(request.method == 'GET'){
-      if(routes.isEmpty){
+    if (request.method == 'GET') {
+      if (routes.isEmpty) {
         resp = index();
-      } else if (request.url.path == 'home/getVisitors'){
+      } else if (request.url.path == 'home/getVisitors') {
         resp = getVisitors();
       }
-    }else if(request.method == 'POST'){
+    } else if (request.method == 'POST') {
       resp = await addVisitor();
     }
     return resp;

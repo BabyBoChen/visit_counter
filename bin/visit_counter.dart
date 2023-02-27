@@ -13,18 +13,26 @@ import 'controllers/homeController.dart';
 import 'models/dbContext.dart';
 
 void main() async {
+  String since = _setUpTime();
+
   var app = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(_cors())
-      .addHandler(_myHandler);
-
-  String since = _setUpTime();
+      .addHandler((req) => _requestDispatcher(req));
 
   var server = await shelf_io.serve(app, '0.0.0.0', 8080);
 
   server.autoCompress = true;
+  print('Version: 1.0.0.1');
   print('Since: $since');
   print('Serving at http://${server.address.host}:${server.port}');
+}
+
+String _setUpTime() {
+  String since = '';
+  var db = DbContext();
+  since = db.getUpTime();
+  return since;
 }
 
 Middleware _cors() {
@@ -41,16 +49,12 @@ Middleware _cors() {
   return filter;
 }
 
-String _setUpTime(){
-  String since = '';
-  var db = DbContext();
-  since = db.getUpTime();
-  return since;
-}
-
-FutureOr<Response> _myHandler(Request request) {
-  var routes = request.url.pathSegments;
+FutureOr<Response> _requestDispatcher(Request request) {
   FutureOr<Response> resp = Response.notFound('404');
+
+  var routes = request.url.pathSegments;
+  List<String> staticDirs = ["lib", "css", "js", "assets"];
+
   if (routes.isEmpty || routes.first == 'home') {
     Controller homeController = HomeController(request);
     resp = homeController.render();
@@ -58,12 +62,14 @@ FutureOr<Response> _myHandler(Request request) {
     var faviconHandler =
         createStaticHandler('bin/views', defaultDocument: 'favicon.ico');
     resp = faviconHandler(request);
+  } else if (staticDirs.contains(routes.first)) {
+    var staticFileHandler = createStaticHandler('bin/views');
+    resp = staticFileHandler(request);
   } else if (routes.first == 'counter') {
     Controller counterController = CounterController(request);
     resp = counterController.render();
-  } else if(routes.first == 'visit_counter.db'){
-    var dbDownload =
-    createFileHandler('bin/visit_counter.db',
+  } else if (routes.first == 'visit_counter.db') {
+    var dbDownload = createFileHandler('bin/visit_counter.db',
         contentType: "application/octet-stream");
     resp = dbDownload(request);
   }
