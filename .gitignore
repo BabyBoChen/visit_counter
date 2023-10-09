@@ -5,3 +5,6 @@
 # Conventional directory for build output.
 build/
 exe/
+
+.vscode/
+secret.dart

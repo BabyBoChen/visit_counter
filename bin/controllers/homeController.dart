@@ -7,13 +7,18 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 
 import '../models/dbContext.dart';
+import '../models/iDbContext.dart';
+import '../models/mongoContext.dart';
 import '../models/visitor_log.dart';
 import 'controllerBase.dart';
 
 class HomeController implements Controller {
   final Request request;
+  late IDbContext _db;
 
-  HomeController(this.request);
+  HomeController(this.request){
+    _db = MongoContext();
+  }
 
   FutureOr<Response> index() {
     var fileResponse =
@@ -29,8 +34,7 @@ class HomeController implements Controller {
     visitor.countryCode = userIp["countryCode"].toString();
     visitor.region = userIp["region"].toString();
     visitor.query = userIp["query"].toString();
-    var db = DbContext();
-    var isSuccess = db.addVisitor(visitor);
+    var isSuccess = await _db.addVisitor(visitor);
     if (isSuccess) {
       resp = Response.ok('1|OK');
     } else {
@@ -41,9 +45,8 @@ class HomeController implements Controller {
 
   FutureOr<Response> getVisitors() async {
     FutureOr<Response> resp = Response.badRequest();
-    var db = DbContext();
-    String since = db.getUpTime();
-    List<VisitorLog> logs = db.getVisitors();
+    String since = _db.getUpTime();
+    List<VisitorLog> logs = await _db.getVisitors();
     List<Map<String, dynamic>> logsMap = [];
     for (VisitorLog log in logs) {
       var dict = {
@@ -55,7 +58,7 @@ class HomeController implements Controller {
       };
       logsMap.add(dict);
     }
-    int total = db.getVisitorCt();
+    int total = await _db.getVisitorCt();
     Map<String, dynamic> visitorLog = {
       "since": since,
       "visitors": logsMap,

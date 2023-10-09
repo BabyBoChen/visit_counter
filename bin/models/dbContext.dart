@@ -11,44 +11,43 @@ import 'package:sqlite3/sqlite3.dart';
 
 import 'visitor_log.dart';
 
-class DbContext{
-
+class DbContext {
   String dbpath = p.current + '/bin/visit_counter.db';
 
-  DbContext(){
+  DbContext() {
     open.overrideFor(OperatingSystem.linux, _openOnLinux);
   }
 
-  bool addVisitor(VisitorLog visitor){
-
+  Future<bool> addVisitor(VisitorLog visitor) {
     bool isSuccess = false;
     var db = sqlite3.open(dbpath);
-    final stmt = db.prepare('INSERT INTO VisitorLog (CountryCode, Region, Query)'
-        ' VALUES (?, ?, ?)');
-    try{
+    final stmt =
+        db.prepare('INSERT INTO VisitorLog (CountryCode, Region, Query)'
+            ' VALUES (?, ?, ?)');
+    try {
       stmt.execute([visitor.countryCode, visitor.region, visitor.query]);
       stmt.dispose();
       db.dispose();
       isSuccess = true;
-    } catch (ex){
+    } catch (ex) {
       print(ex);
       stmt.dispose();
       db.dispose();
       isSuccess = false;
     }
-    return isSuccess;
+    return Future.value(isSuccess);
   }
 
-  List<VisitorLog> getVisitors(){
+  Future<List<VisitorLog>> getVisitors() {
     List<VisitorLog> logs = [];
     Database? db;
-    try{
+    try {
       db = sqlite3.open(dbpath);
-    }catch(ex){
+    } catch (ex) {
       print(ex);
     }
-    if(db != null){
-      try{
+    if (db != null) {
+      try {
         var resultSet = db.select('SELECT * FROM VisitorLog '
             'order by Timestamp desc LIMIT 30');
         for (Row row in resultSet) {
@@ -60,68 +59,68 @@ class DbContext{
           log.timestamp = row['Timestamp'].toString();
           logs.add(log);
         }
-      }catch(ex){
+      } catch (ex) {
         print(ex);
-      }finally{
+      } finally {
         db.dispose();
       }
     }
-    return logs;
+    return Future.value(logs);
   }
 
-  int getVisitorCt(){
+  Future<int> getVisitorCt() {
     int visitorCt = 0;
     //select count(*) as VisitorCt from VisitorLog
     Database? db;
-    try{
+    try {
       db = sqlite3.open(dbpath);
-    }catch (ex){
+    } catch (ex) {
       print(ex);
     }
-    if(db != null){
-      try{
-        var resultSet = db.select('select count(*) as VisitorCt from VisitorLog');
-        for(Row row in resultSet){
+    if (db != null) {
+      try {
+        var resultSet =
+            db.select('select count(*) as VisitorCt from VisitorLog');
+        for (Row row in resultSet) {
           visitorCt = int.parse(row["VisitorCt"].toString());
           break;
         }
-      }catch(ex){
+      } catch (ex) {
         print(ex);
-      } finally{
+      } finally {
         db.dispose();
       }
     }
-    return visitorCt;
+    return Future.value(visitorCt);
   }
 
-  String getUpTime(){
+  String getUpTime() {
     String since = '';
     Database? db;
-    try{
+    try {
       db = sqlite3.open(dbpath);
-    }catch (ex){
+    } catch (ex) {
       print(ex);
     }
-    if(db != null){
-      try{
+    if (db != null) {
+      try {
         var resultSet = db.select("select * from UpTime");
-        if(resultSet.isEmpty){
+        if (resultSet.isEmpty) {
           db.execute("insert into UpTime DEFAULT VALUES");
           resultSet = db.select("select * from UpTime");
         }
         since = resultSet.first["Since"].toString();
-      }catch(ex){
+      } catch (ex) {
         print(ex);
-      } finally{
+      } finally {
         db.dispose();
       }
     }
     return since;
   }
-  
+
   DynamicLibrary _openOnLinux() {
     String soPath = p.current + '/bin/libsqlite3.so.0.8.6';
     return DynamicLibrary.open(soPath);
   }
-
 }

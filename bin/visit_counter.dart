@@ -41,6 +41,7 @@ Middleware _cors() {
       responseHandler: (response) {
         var myHeader = {
           'Access-Control-Allow-Origin': 'https://babybochen.github.io',
+          //'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': '*'
         };
         response = response.change(headers: myHeader);
