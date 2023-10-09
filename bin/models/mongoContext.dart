@@ -10,8 +10,8 @@ class MongoContext implements IDbContext{
   static final DateTime since = DateTime.now();
   static Db? _db;
 
-  Future<Db> getDb() async {
-    _db ??= await Db.create(Secret.MONGODB_CONNSTRING);
+  Future<Db> getDb() async {   
+    _db ??= await Db.create(String.fromEnvironment("MONGODB_CONNSTRING"));
     if(!_db!.isConnected){
       await _db!.open();
     }
