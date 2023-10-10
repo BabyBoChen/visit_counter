@@ -1,5 +1,7 @@
 library visit_counter.models;
 
+import 'dart:io';
+
 import 'package:mongo_dart/mongo_dart.dart';
 
 import '../secrets/secret.dart';
@@ -8,28 +10,25 @@ import 'visitor_log.dart';
 
 class MongoContext implements IDbContext{
   static final DateTime since = DateTime.now();
-  static Db? _db;
 
   Future<Db> getDb() async {   
-    _db ??= await Db.create(String.fromEnvironment("MONGODB_CONNSTRING"));
-    if(!_db!.isConnected){
-      await _db!.open();
-    }
-    return _db!;
+    var db = await Db.create(Secret.MONGODB_CONNSTRING);
+    await db.open();
+    return db;
   }    
 
   @override
   Future<bool> addVisitor(VisitorLog visitor) async {
-    _db = await getDb();
+    var db = await getDb();
     var qry = where.ne("_id", null).sortBy("logId", descending: true);
-    int maxLogId =  await _db!.collection("visitor_log").findOne(qry).then((doc){
+    int maxLogId =  await db.collection("visitor_log").findOne(qry).then((doc){
       if(doc != null){
         return doc["logId"];
       } else {
         return 0;
       }
     });
-    var res = await _db!.collection("visitor_log").insertOne({
+    var res = await db.collection("visitor_log").insertOne({
       "_id": ObjectId(),
       "logId":maxLogId + 1,
       "countryCode":visitor.countryCode,
@@ -38,6 +37,7 @@ class MongoContext implements IDbContext{
       "timestamp":DateTime.now().toString().substring(0,19),
       "_ts": Timestamp(),
     });
+    await db.close();
     return res.isSuccess;
   }
 
@@ -48,17 +48,18 @@ class MongoContext implements IDbContext{
 
   @override
   Future<int> getVisitorCt() async {
-    _db = await getDb();
-    int cnt = await _db!.collection("visitor_log").count();
+    var db = await getDb();
+    int cnt = await db.collection("visitor_log").count();
+    await db.close();
     return cnt;
   }
 
   @override
   Future<List<VisitorLog>> getVisitors() async{
     List<VisitorLog> logs = [];
-    _db = await getDb();
+    var db = await getDb();
     var qry = where.ne("_id", null).sortBy("timestamp", descending: true).limit(30);
-    await _db!.collection("visitor_log").find(qry).forEach((row) {
+    await db.collection("visitor_log").find(qry).forEach((row) {
       var log = VisitorLog();
       log.logId = row["logId"] as int;
       log.countryCode = row["countryCode"].toString();
@@ -67,7 +68,7 @@ class MongoContext implements IDbContext{
       log.timestamp = row["timestamp"].toString();
       logs.add(log);
     });
-    await _db!.close();
+    await db.close();
     return logs;
   }
 
