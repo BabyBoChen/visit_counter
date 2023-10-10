@@ -23,7 +23,7 @@ void main() async {
   var server = await shelf_io.serve(app, '0.0.0.0', 8080);
 
   server.autoCompress = true;
-  print('Version: 1.0.0.1');
+  print('Version: 1.2.0');
   print('Since: $since');
   print('Serving at http://${server.address.host}:${server.port}');
 }

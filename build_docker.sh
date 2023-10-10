@@ -1,1 +1,1 @@
-docker build -t bbljboy/my_dart .
+sudo docker build -t bbljboy/my_dart .
